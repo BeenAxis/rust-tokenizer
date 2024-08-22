@@ -1,10 +1,8 @@
 pub mod linkedlist;
 pub mod voids;
 
+use std::fs::File;
 use std::io::{BufRead, BufReader};
-
-use crate::File;
-
 
 pub fn read_lines(path: impl Into<String>) -> Vec<String> {
     let file = path.into();

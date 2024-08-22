@@ -98,6 +98,13 @@ impl<HOLDER: TokenHolder> TokenBuilder<HOLDER> {
         self.tokens.push_back(Token::Custom(tok))
     }
 
+    pub fn from_string(&mut self, str: &str) {
+        str.chars().for_each(|ch| {
+            self.tokens.push_back(Token::Char(ch));
+        });
+        self.tokens.push_back(Token::NewLine);
+    }
+
     pub fn from_file(&mut self, path: impl Into<String>) {
         let lines = read_lines(path);
         for line in lines {
@@ -252,15 +259,36 @@ impl PartialEq for TestCustomTokens {
 
 impl TokenHolder for TestCustomTokens {}
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 pub enum Token<T: TokenHolder> {
     Empty,
     Char(char),
     StrLit(String),
+    String(String),
     IntLit(i32),
     EOF,
     NewLine,
     Custom(T),
+}
+
+impl<HOLDER: TokenHolder> PartialEq for Token<HOLDER> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Token::Empty, Token::Empty) => true,
+            (Token::Char(a), Token::Char(b)) => a == b,
+            (Token::StrLit(a), Token::StrLit(b)) => a == b,
+            (Token::IntLit(a), Token::IntLit(b)) => a == b,
+            (Token::EOF, Token::EOF) => true,
+            (Token::NewLine, Token::NewLine) => true,
+            (Token::Custom(a), Token::Custom(b)) => a == b,
+            (Token::String(_), Token::String(_)) => true,
+            _ => false
+        }
+    }
+
+    fn ne(&self, other: &Self) -> bool {
+        !self.eq(other)
+    }
 }
 
 impl<T: TokenHolder> Token<T> {
@@ -273,6 +301,7 @@ impl<T: TokenHolder> Token<T> {
             Token::EOF => { String::from("<eof>") }
             Token::NewLine => { String::from("\n") }
             Token::Custom(o) => { format!("{:?}", o) }
+            Token::String(a) => { format!("{:?}", a) }
         }
     }
 }
